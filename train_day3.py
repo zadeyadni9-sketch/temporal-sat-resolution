@@ -30,8 +30,7 @@ models_module = importlib.util.module_from_spec(spec_models)
 spec_models.loader.exec_module(models_module)
 
 # Import objects from loaded modules
-create_synthetic_sequence = dataset_module.create_synthetic_sequence
-FrameInterpolationDataset = dataset_module.FrameInterpolationDataset
+SatTemporalDataset = dataset_module.SatTemporalDataset
 SimpleInterpCNN = models_module.SimpleInterpCNN
 
 import torch
@@ -41,10 +40,16 @@ import torch.optim as optim
 
 
 def main():
-    # 1. Prepare data
-    frames = create_synthetic_sequence(num_frames=50, height=32, width=32)
-    dataset = FrameInterpolationDataset(frames, gap=2)
-    dataloader = DataLoader(dataset, batch_size=8, shuffle=True)
+    # 1. Prepare data from satellite images
+    data_root = os.path.join(project_root, "data")
+    print("Data root:", data_root)
+
+    dataset = SatTemporalDataset(root_dir=data_root, gap=2, resize_to=(256, 256))
+    dataloader = DataLoader(dataset, batch_size=4, shuffle=True)
+
+    if len(dataset) == 0:
+        print("No samples found in SatTemporalDataset. Check your data folder.")
+        return
 
     # 2. Prepare model, loss, optimizer
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -75,8 +80,10 @@ def main():
         avg_loss = total_loss / len(dataset)
         print(f"Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.6f}")
 
-    torch.save(model.state_dict(), "simple_interp_cnn_day3.pth")
-    print("Training complete. Model saved to simple_interp_cnn_day3.pth")
+    # 3. Save model
+    out_path = os.path.join(project_root, "sat_interp_cnn.pth")
+    torch.save(model.state_dict(), out_path)
+    print(f"Training complete. Model saved to {out_path}")
 
 
 if __name__ == "__main__":
