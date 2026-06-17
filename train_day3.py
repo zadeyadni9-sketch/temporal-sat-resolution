@@ -44,11 +44,17 @@ def main():
     data_root = os.path.join(project_root, "data")
     print("Data root:", data_root)
 
-    dataset = SatTemporalDataset(root_dir=data_root, gap=2, resize_to=(256, 256))
+    # Use only sequence_002
+    dataset = SatTemporalDataset(
+        root_dir=data_root,
+        gap=2,
+        resize_to=(256, 256),
+        sequences=["sequence_002"],
+    )
     dataloader = DataLoader(dataset, batch_size=4, shuffle=True)
 
     if len(dataset) == 0:
-        print("No samples found in SatTemporalDataset. Check your data folder.")
+        print("No samples found in SatTemporalDataset. Check your data folder and sequence_002.")
         return
 
     # 2. Prepare model, loss, optimizer

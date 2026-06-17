@@ -37,8 +37,6 @@ class FrameInterpolationDataset(Dataset):
         self.frames = frames
         self.gap = gap
         self.num_frames = frames.shape[0]
-
-        # t from 0 to num_frames - gap - 1
         self.num_samples = self.num_frames - self.gap - 1
 
     def __len__(self):
@@ -46,19 +44,17 @@ class FrameInterpolationDataset(Dataset):
 
     def __getitem__(self, idx):
         t = idx
-        t_mid = t + 1      # for gap=2, middle is t+1
+        t_mid = t + 1
         t_end = t + self.gap
 
         frame_t = self.frames[t]
         frame_t_mid_target = self.frames[t_mid]
         frame_t_end = self.frames[t_end]
 
-        # Stack input frames: shape (2, H, W)
         input_frames = np.stack([frame_t, frame_t_end], axis=0)
 
-        # Convert to tensors
-        input_tensor = torch.from_numpy(input_frames).float()          # (2, H, W)
-        target_tensor = torch.from_numpy(frame_t_mid_target).float()   # (H, W)
+        input_tensor = torch.from_numpy(input_frames).float()
+        target_tensor = torch.from_numpy(frame_t_mid_target).float()
 
         return input_tensor, target_tensor
 
@@ -68,18 +64,24 @@ class FrameInterpolationDataset(Dataset):
 # =========================
 
 class SatTemporalDataset(Dataset):
-    def __init__(self, root_dir, gap=2, resize_to=(256, 256)):
+    def __init__(self, root_dir, gap=2, resize_to=(256, 256), sequences=None):
         """
         root_dir: path to 'data' folder containing sequence_* subfolders
         gap: temporal gap between input frames (e.g., t and t+gap)
         resize_to: (W, H) to resize all frames so shapes match
+        sequences: list of sequence folder names to use,
+                   e.g. ["sequence_002"]. If None, use all sequence_* folders.
         """
         self.root_dir = root_dir
         self.gap = gap
         self.resize_to = resize_to
         self.samples = []  # list of (frame_paths, t_start)
 
-        seq_dirs = sorted(glob(os.path.join(root_dir, "sequence_*")))
+        if sequences is None:
+            seq_dirs = sorted(glob(os.path.join(root_dir, "sequence_*")))
+        else:
+            seq_dirs = [os.path.join(root_dir, s) for s in sequences]
+
         for seq in seq_dirs:
             frame_paths = sorted(glob(os.path.join(seq, "t*.png")))
             num_frames = len(frame_paths)
@@ -90,6 +92,7 @@ class SatTemporalDataset(Dataset):
                 if t_mid < num_frames and t_end < num_frames:
                     self.samples.append((frame_paths, t_start))
 
+        print(f"[SatTemporalDataset] Using sequences: {sequences if sequences is not None else 'ALL'}")
         print(f"[SatTemporalDataset] Found {len(self.samples)} triplets")
 
     def __len__(self):
@@ -111,7 +114,6 @@ class SatTemporalDataset(Dataset):
         frame_mid = load_frame(frame_paths[t_mid])
         frame_end = load_frame(frame_paths[t_end])
 
-        # Stack inputs (2, H, W)
         input_frames = np.stack([frame_t, frame_end], axis=0)
         input_tensor = torch.from_numpy(input_frames).float()
         target_tensor = torch.from_numpy(frame_mid).float()
