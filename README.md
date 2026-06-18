@@ -91,3 +91,16 @@ Potential future improvements:
 
 This project is primarily for learning and experimentation with temporal super-resolution on satellite imagery.  
 Feel free to fork the repository, open issues, or experiment with your own datasets.
+
+## Results on sequence_002
+
+For the example frame shown in `outputs/interp_example_day3.png`:
+
+- PSNR (Pred vs GT): 24.79 dB
+- SSIM (Pred vs GT): 0.8982
+
+The visualization compares:
+
+- Context frames (t–1, t)
+- Ground truth frame at t+1
+- Predicted frame at t+1

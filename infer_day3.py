@@ -1,3 +1,5 @@
+import math
+from skimage.metrics import peak_signal_noise_ratio, structural_similarity
 import os
 import importlib.util
 
@@ -79,3 +81,20 @@ plt.tight_layout()
 out_path = os.path.join("outputs", "interp_example_day3.png")
 plt.savefig(out_path)
 print(f"Saved visualization to {out_path}")
+# Ensure arrays are float64 and in [0, 1]
+gt = frame_mid_gt.astype("float64")
+pred = pred_frame.astype("float64")
+
+# If your pixel range is 0–255, normalize:
+if gt.max() > 1.5:
+    gt = gt / 255.0
+    pred = pred / 255.0
+
+# Compute PSNR
+psnr_val = peak_signal_noise_ratio(gt, pred, data_range=1.0)
+
+# Compute SSIM (for grayscale, no channel axis)
+ssim_val = structural_similarity(gt, pred, data_range=1.0)
+
+print(f"PSNR (Pred vs GT): {psnr_val:.2f} dB")
+print(f"SSIM (Pred vs GT): {ssim_val:.4f}")
