@@ -104,3 +104,12 @@ The visualization compares:
 - Context frames (t–1, t)
 - Ground truth frame at t+1
 - Predicted frame at t+1
+
+## Baseline comparison (sequence_002)
+
+Using an example frame, we compare the model against bicubic interpolation.
+
+| Method  | PSNR (vs GT) | SSIM (vs GT) |
+| ------- | -----------: | -----------: |
+| Bicubic |     14.54 dB |       0.7868 |
+| Model   |     24.79 dB |       0.8982 |
